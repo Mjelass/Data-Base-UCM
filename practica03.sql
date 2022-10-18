@@ -168,7 +168,11 @@ journalist has written any article for a newspaper in 2019, it
 must display '(none)' instead of the name of the journalist.
 Schema: (Newspaper_Id, Newspaper_Name, Journalist_Id, Journalist_Name)
 */
-
+select distinct newspaper.idnewspaper "Newspaper_Id",newspaper.name "Newspaper_Name",journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name"
+from newspaper
+left outer join article on article.idnewspaper = newspaper.idnewspaper
+left outer join journalist on journalist.idjournalist = article.idjournalist
+where article.pubdate between to_Date(TO_DATE('01/01/2019')) AND to_Date(TO_DATE('31/12/2019'));
   
 
 /* 5. Display the list of ALL journalists, the number of articles written
@@ -177,6 +181,12 @@ been published.
 If a journalist has written no articles, 0 must be displayed on those columns. 
 Schema: (Journalist_Id, Journalist_Name, Num_Articles, Num_Newspapers)
 */
+--no me sale bien el Num_newspaper
+select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",count(article.idarticle) "Num_Articles",count(newspaper.idnewspaper) "Num_Newspapers"
+from journalist 
+left outer join article on article.idjournalist = journalist.idjournalist
+left outer join newspaper on newspaper.idnewspaper = article.idnewspaper
+group by journalist.idjournalist, journalist.name;
 
 
 
