@@ -1,4 +1,4 @@
--------------------------------------------------------------------------
+------------------------------------------------------------------------
 -- Lab Session 3. SQL QUERIES: OUTER JOINS, EXTENDED SELECT (GROUP BY, HAVING)
 -- -------------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ INSERT INTO article VALUES (116, 'Editorial: Most relevant news 2019',
 
 COMMIT;
 
-select * from article;
+select * from article where idjournalist = 203 ;
 select * from newspaper;
 select * from journalist;
 
@@ -145,7 +145,7 @@ Schema: (Journalist_id, Journalist_Name, Language, Num_newspapers,
 Total_visits, Max_visits).*/
 
 --Problema en Num_Newspaper
-select journalist.idJournalist "JOURNALIST_ID", journalist.name "JOURNALIST_NAME", newspaper.language "LAN", count(*) "NUM_NEWSPAPERS", sum(article.numvisits) "TOTAL_VISITS", max(article.numvisits)"MAX_VISITS"
+select journalist.idJournalist "JOURNALIST_ID", journalist.name "JOURNALIST_NAME", newspaper.language "LAN", count(distinct newspaper.idnewspaper) "NUM_NEWSPAPERS", sum(article.numvisits) "TOTAL_VISITS", max(article.numvisits)"MAX_VISITS"
 from newspaper, journalist ,article
 where journalist.idJournalist=article.idJournalist and newspaper.idnewspaper = article.idnewspaper
 group by  journalist.idJournalist,  journalist.name,  newspaper.language;
@@ -182,7 +182,7 @@ If a journalist has written no articles, 0 must be displayed on those columns.
 Schema: (Journalist_Id, Journalist_Name, Num_Articles, Num_Newspapers)
 */
 --no me sale bien el Num_newspaper
-select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",count(article.idarticle) "Num_Articles",count(newspaper.idnewspaper) "Num_Newspapers"
+select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",count(article.idarticle) "Num_Articles",count(distinct newspaper.idnewspaper) "Num_Newspapers"
 from journalist 
 left outer join article on article.idjournalist = journalist.idjournalist
 left outer join newspaper on newspaper.idnewspaper = article.idnewspaper
