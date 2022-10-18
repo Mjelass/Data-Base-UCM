@@ -1,4 +1,4 @@
-- -------------------------------------------------------------------------
+-------------------------------------------------------------------------
 -- Lab Session 3. SQL QUERIES: OUTER JOINS, EXTENDED SELECT (GROUP BY, HAVING)
 -- -------------------------------------------------------------------------
 
@@ -144,7 +144,8 @@ received by an article written by each journalist in each language.
 Schema: (Journalist_id, Journalist_Name, Language, Num_newspapers,
 Total_visits, Max_visits).*/
 
-select journalist.idJournalist "JOURNALIST_ID", journalist.name "JOURNALIST_NAME", newspaper.language "LAN", count(*) "NUM_NEWSPAPERS", newspaper.name "mbrenews"
+--Problema en Num_Newspaper
+select journalist.idJournalist "JOURNALIST_ID", journalist.name "JOURNALIST_NAME", newspaper.language "LAN", count(*) "NUM_NEWSPAPERS", sum(article.numvisits) "TOTAL_VISITS", max(article.numvisits)"MAX_VISITS"
 from newspaper, journalist ,article
 where journalist.idJournalist=article.idJournalist and newspaper.idnewspaper = article.idnewspaper
 group by  journalist.idJournalist,  journalist.name,  newspaper.language;
@@ -155,7 +156,10 @@ journalist has not written any article for any newspaper, it must
 display '(none)' instead of the name of the newspaper.
 Schema: (Journalist_Id, Journalist_Name, Newspaper_Name)
 */
-
+select distinct journalist.idjournalist "Journalist_Id", journalist.name "Journalist_Name", newspaper.name "Newspaper_Name"
+from journalist
+LEFT outer join article on journalist.idjournalist = article.idjournalist
+LEFT outer join newspaper on newspaper.idnewspaper = article.idnewspaper;
 
   
 /* 4. Display the list of ALL newspapers that have published articles in 2019, 
@@ -200,4 +204,3 @@ Schema: (Journalist_Id, Journalist_Name, Num_Newspapers, Total_Visits*/
 /* 9. Answer the previous query (8), but sorting the results by Num_Articles
 in descending order and then, if there are several rows with the same value, by 
 Total_Visits in ascending order.*/
-
