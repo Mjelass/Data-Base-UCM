@@ -63,7 +63,7 @@ insert into journalist values (207,'Antonio Lopez');
 INSERT INTO article VALUES (101, 'El Banco de Inglaterra advierte de los peligros del Brexit',
 			   'http://www.elnoticiero.es/ibex9000',
 			   1,204, TO_DATE('01/06/2018'), 370);
-INSERT INTO article VALUES (102, 'La UE acabará con el 100% de las emisiones de CO2 para 2050',
+INSERT INTO article VALUES (102, 'La UE acabar? con el 100% de las emisiones de CO2 para 2050',
 			   'http://www.elnoticiero.es/ibex9000',
 			   1,204, TO_DATE('01/06/2019'), 1940);
 INSERT INTO article VALUES (103, 'Madrid 360 starts tomorrow',
@@ -72,7 +72,7 @@ INSERT INTO article VALUES (103, 'Madrid 360 starts tomorrow',
 INSERT INTO article VALUES (104, 'El Ayuntamiento prepara diez nuevos carriles bici',
 			   'http://www.diariozaragoza.es/movilidad33',
 			   2,203, TO_DATE('01/06/2018'), 2300);
-INSERT INTO article VALUES (105, 'Un aragonés cruzará Siberia, de punta a punta en bici',
+INSERT INTO article VALUES (105, 'Un aragon?s cruzar? Siberia, de punta a punta en bici',
 			   'http://www.diariozaragoza.es/ibex9000',
 			   2,203, TO_DATE('01/11/2019'), 2300);
 INSERT INTO article VALUES (106, 'Hecatombe financiera ante un Brexit duro',
@@ -82,7 +82,7 @@ INSERT INTO article VALUES (106, 'Hecatombe financiera ante un Brexit duro',
 INSERT INTO article VALUES (107, 'Fomento anuncia una estrategia nacional para fomentar la intermodalidad y el uso de la bicicleta',
 			   'http://www.elnoticiero.es/ibex9001',
 			   1,206, TO_DATE('22/06/2018'), 390);
-INSERT INTO article VALUES (108, 'Así será el carril bici que pasará por la puerta del Clínico',
+INSERT INTO article VALUES (108, 'As? ser? el carril bici que pasar? por la puerta del Cl?nico',
 			   'http://www.diariozaragoza.es/nacional22062018',
 			   2,206, TO_DATE('13/11/2018'), 230);
 INSERT INTO article VALUES (109, 'How will traffic constraints affect you? The Gazette answers your questions',
@@ -144,7 +144,7 @@ received by an article written by each journalist in each language.
 Schema: (Journalist_id, Journalist_Name, Language, Num_newspapers,
 Total_visits, Max_visits).*/
 
---Problema en Num_Newspaper
+
 select journalist.idJournalist "JOURNALIST_ID", journalist.name "JOURNALIST_NAME", newspaper.language "LAN", count(distinct newspaper.idnewspaper) "NUM_NEWSPAPERS", sum(article.numvisits) "TOTAL_VISITS", max(article.numvisits)"MAX_VISITS"
 from newspaper, journalist ,article
 where journalist.idJournalist=article.idJournalist and newspaper.idnewspaper = article.idnewspaper
@@ -181,7 +181,7 @@ been published.
 If a journalist has written no articles, 0 must be displayed on those columns. 
 Schema: (Journalist_Id, Journalist_Name, Num_Articles, Num_Newspapers)
 */
---no me sale bien el Num_newspaper
+
 select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",count(article.idarticle) "Num_Articles",count(distinct newspaper.idnewspaper) "Num_Newspapers"
 from journalist 
 left outer join article on article.idjournalist = journalist.idjournalist
@@ -202,6 +202,13 @@ number of visits to those articles.
 Schema: (Newspaper_Id, Newspaper_Name, Num_Articles, Total_Visits)*/
 
 
+--el enunciado le falta "more or equal to 2 articles" para que me sale como en la correccion
+select newspaper.idnewspaper "Newspaper_Id",newspaper.name "Newspaper_Name",count(*) "Num_Articles",sum(article.numvisits) "Total_Visits"  
+from newspaper
+join article on newspaper.idnewspaper = article.idnewspaper and article.numvisits<2000
+group by newspaper.idnewspaper, newspaper.name
+having count(*)>=2;
+
 
 /* 8. Display the list of ALL journalists, the number of newspapers for which 
 they have written articles and the total number of visits to those articles.
@@ -209,8 +216,27 @@ If a journalist has not published any article, it must display 0 in those
 columns.
 Schema: (Journalist_Id, Journalist_Name, Num_Newspapers, Total_Visits*/
 
+select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",count(DISTINCT newspaper.name) "Num_Newspapers",nvl(sum(article.numvisits),0) "Total_Visits"
+from journalist
+left outer join article on article.idjournalist = journalist.idjournalist
+left outer join newspaper on article.idnewspaper = newspaper.idnewspaper
+group by journalist.idjournalist, journalist.name;
+
+--en la correccion ha puesto  NUM_ARTICLES al lugar de Num_Newspapers y da esto
+select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",count(article.idarticle) "NUM_ARTICLES",nvl(sum(article.numvisits),0) "Total_Visits"
+from journalist
+left outer join article on article.idjournalist = journalist.idjournalist
+left outer join newspaper on article.idnewspaper = newspaper.idnewspaper
+group by journalist.idjournalist, journalist.name;
 
 
 /* 9. Answer the previous query (8), but sorting the results by Num_Articles
 in descending order and then, if there are several rows with the same value, by 
 Total_Visits in ascending order.*/
+
+select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",count(article.idarticle) "NUM_ARTICLES",nvl(sum(article.numvisits),0) "Total_Visits"
+from journalist
+left outer join article on article.idjournalist = journalist.idjournalist
+left outer join newspaper on article.idnewspaper = newspaper.idnewspaper
+group by journalist.idjournalist, journalist.name
+order by count(article.idarticle) desc, nvl(sum(article.numvisits),0) asc ;
