@@ -225,15 +225,34 @@ where journalist.idjournalist in (
 /* 6. Display the most visited articles in each newspaper.  
 Schema: (Newspaper_Id, Article_Id, Headline, Num_visits) */
 
-select newspaper.idnewspaper "Newspaper_Id",article.idarticle "Article_Id",article.headline "Headline",sum(article.numvisits) "Num_visits"
+--esto es para sacar el maximo num de visitas para cada newspaper
+--luego hay que integrarlo en el querry de abjo
+select newspaper.idnewspaper "Newspaper_Id",max(article.numvisits) "Num_visits"
 from article 
 join newspaper on newspaper.idnewspaper = article.idnewspaper
+group by newspaper.idnewspaper;
+
+
+--este es el querry del ejercicio
+select newspaper.idnewspaper "Newspaper_Id",article.idarticle "Article_Id",article.headline "Headline",article.numvisits "Num_visits"
+from article 
+join newspaper on newspaper.idnewspaper = article.idnewspaper
+where article.numvisits in (
+select max(article.numvisits) "Num_visits"
+from article 
+join newspaper on newspaper.idnewspaper = article.idnewspaper
+group by newspaper.idnewspaper
+);
 
 
 /* 7. Name of the authors that have published articles in ALL newspapers in 
 English.
 Schema: (Journalist_Id, Journalist_Name)*/
 
+--me falta entender esto y  terminarlo
+select article.idjournalist "Journalist_Id", count(distinct idnewspaper)
+from article
+group by article.idjournalist;
 
 
 /* 8. Show the name and number of visits of the most famous
@@ -241,8 +260,27 @@ journalist(s) (the journalist(s) whose articles have the greatest number of
 visits in total).
 Schema: (Journalist_Id, Journalist_Name, TotalVistits) */
 
+select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",sum(article.numvisits) "TotalVistits"
+from journalist 
+join article on article.idjournalist = journalist.idjournalist
+group by journalist.idjournalist, journalist.name
+having sum(article.numvisits) = (
+    select max("TotalVistits")
+    from(
+        select article.idjournalist "Journalist_Id",sum(article.numvisits) "TotalVistits" 
+        from article
+        group by article.idjournalist
+    )
+)
 
 
+
+
+
+
+
+
+   
 /* 9. List the years on which ALL English newspapers have published at least one
 article, the total number of articles published on each year and total
 number of visits received by those newspapers.
