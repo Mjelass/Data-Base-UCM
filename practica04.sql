@@ -271,7 +271,7 @@ having sum(article.numvisits) = (
         from article
         group by article.idjournalist
     )
-)
+);
 
 
 
@@ -292,6 +292,14 @@ total number of English newspapers.)
 Schema: (Year, Num_Articles, Num_Visits)*/
 
 
+select extract (year from  pubdate), count(idarticle), sum(numvisits)
+from article
+--Lo de dentro para los english newspaper
+where article.idnewspaper in (select idnewspaper from newspaper where language = 'en')
+group by extract (year from  pubdate)
+--Lo de dentro para el numero de los english newspaper
+having count(idnewspaper) >= (select count(idnewspaper) from newspaper where language = 'en') ;
+
 
 /* 10. For each Journalist, obtain the difference between the total number of visits 
 received by their articles and the average number of visits received by 
@@ -308,6 +316,18 @@ Finally, the subtraction of these two numbers can be performed.)
 Schema: (Journalist_Id, Journalist_Name, Deviation)*/
 
 
+select journalist.idjournalist "Journalist_Id",journalist.name "Journalist_Name",  "Totalvisits" - "AVGTOTLVIS" "Deviation"
+from (
+    select idjournalist, sum(numvisits) "Totalvisits", (
+        select avg("Totalvisits") from (
+        select idjournalist, sum(numvisits) "Totalvisits"
+        from article
+        group by idjournalist
+    ) ) "AVGTOTLVIS"
+        from article
+        group by idjournalist
+) e
+join journalist on journalist.idjournalist = e.idjournalist;
 
 /* 11. Display the articles that received more visits than the average visits
 of the newspaper where they were published.
@@ -316,6 +336,15 @@ of visits for each newspaper)
 Schema: (Newspaper_Id, Article_Id, Headline, Num_visits) */
 
 
+select idnewspaper "Newspaper_Id", idarticle "Article_Id" , headline, numvisits "Num_visits"
+from article e
+where e.numvisits > (
+    select avg(numvisits)
+    from article
+    where idnewspaper = e.idnewspaper
+    group by idnewspaper
+    
+);
 
 /* 12. Display the articles that received more visits than the average visits
 of the newspaper where they were published.
@@ -325,3 +354,22 @@ result. You can use a subquery in the FROM clause that obtains the newspaper id
 and the average number of visits for each newspaper, and join it with the 
 articles to check that the number of visits is greater than the average.)
 */
+
+select idnewspaper "Newspaper_Id", idarticle "Article_Id" , headline, numvisits "Num_visits", (select avg(numvisits)
+    from article
+    where idnewspaper = e.idnewspaper
+    group by idnewspaper) "AVG_VISITS_NEWSPAPER"
+from article e
+where e.numvisits > (
+    select avg(numvisits)
+    from article
+    where idnewspaper = e.idnewspaper
+    group by idnewspaper
+    
+)
+
+
+
+
+
+
