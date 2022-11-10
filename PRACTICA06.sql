@@ -93,14 +93,11 @@ number of items available. If there are no offers for a given
 department, the procedure must display 'No sales offers in this
 department'. If there is no store with that id, the procedure must
 show an error message.
-
 The procedure must also update the columns DateSalesOffers and
 NumSalesOffers (table _DSDept_) with the date received as a parameter
 and the total number of offers for that department, respectively.
-
 For example, if the procedure is invoked for the sales offers on 1st
 April 2020 in Store 37, the result should be as follows:
-
 -----------------------------------------------------------------------
 SALES OFFERS ON 01-04-2020 IN STORE 37 -- Conde de Peñalver, 44
 -----------------------------------------------------------------------
@@ -111,7 +108,6 @@ Department:    2 -- Computers
   o02    Victor Computer i7 16Gb 1Tb HD       15-04-2020    15 items
 Department:    3 -- TV and Home Audio
   o04    Soundbar Speaker Megatron            15-05-2020    20 items
-
 */
 
 CREATE OR REPLACE PROCEDURE StoreOffers(STORE_ID VARCHAR2, DATE_RECEIVED DATE) IS
@@ -120,6 +116,15 @@ V_ADDRESS DSSTORE.ADDRESS%TYPE;
 
 CURSOR CR_DEPT IS
     SELECT IDDEPT, DESCR FROM DSDEPT WHERE IDSTORE = STORE_ID;
+    
+V_DEPT_ID DSSALEOFFER.IDDEPT%TYPE;
+
+CURSOR CR_OFFER IS
+    select idOffer, product, endDate, offereditems
+    from dssaleoffer
+    where idstore = STORE_ID and iddept = V_DEPT_ID AND ENDDATE > DATE_RECEIVED;
+
+V_NUM NUMBER;
 
 BEGIN
     SELECT ADDRESS
@@ -132,7 +137,24 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('-----------------------------------------------------------------------');
     
     FOR R_DEPT IN CR_DEPT LOOP
-        DBMS_OUTPUT.PUT_LINE('Department:    '||R_DEPT.IDDEPT||' -- '||R_DEPT.DESCR);
+        V_DEPT_ID := R_DEPT.IDDEPT;
+        DBMS_OUTPUT.PUT_LINE('Department:    '||V_DEPT_ID||' -- '||R_DEPT.DESCR);
+        
+        V_NUM := 0;
+        
+        FOR R_OFFER IN CR_OFFER LOOP
+            V_NUM := V_NUM + 1;
+            DBMS_OUTPUT.PUT_LINE('  '||TO_CHAR(R_OFFER.idOffer)||'    '||RPAD(R_OFFER.product,25)||'                      '||R_OFFER.endDate||'    '||R_OFFER.offereditems||' items');
+            
+            UPDATE DSDEPT SET DATESALESOFFERS = DATE_RECEIVED WHERE IDSTORE = STORE_ID AND IDDEPT = V_DEPT_ID;
+            UPDATE DSDEPT SET NUMSALESOFFERS = R_OFFER.offereditems WHERE IDSTORE = STORE_ID AND IDDEPT = V_DEPT_ID;
+            
+        END LOOP;
+        
+        IF V_NUM = 0 THEN
+            DBMS_OUTPUT.PUT_LINE('No sales offers in this department');
+        END IF;
+        
     END LOOP;
     
 END;
@@ -143,7 +165,7 @@ BEGIN
 END;
 /
 
-
+SELECT * FROM DSDEPT;
 
 /* 2. Write a trigger UpdateSoldItems that fires on _any_ change of
 table DSSales (any operation: insert, update or delete). It must
@@ -151,7 +173,6 @@ update the value of the column SoldItems. It must be able to work
 correctly for any change to any column of DSSales, including
 IdOffer (for example, if an UPDATE sentence changes the offer of a
 sale).
-
 Besides, if the date of the sale is earlier than the current date, the
 trigger must automatically change it to the current date.  Include in
 your answer some sentences to test the trigger for all types of
@@ -162,7 +183,6 @@ modification sentences.  */
 
 
 /* 3. Consider the following Oracle script that is executed on a fresh session:
-
 SAVEPOINT Pzero;
 ROLLBACK TO SAVEPOINT Pzero;
 CREATE TABLE Tab1(key1 INT PRIMARY KEY, total INT DEFAULT 0);
@@ -180,13 +200,10 @@ INSERT INTO Tab1 VALUES (3, 300);
 COMMIT;  
 INSERT INTO TabX VALUES (4, 400);
 DELETE FROM  Tab1 WHERE key1 = 3;
-
 a) Identify the transaction control sentences thar are unnecessary and
 the ones that issue an error message, explaining why.
-
 b) What are the tables and their contents that remain at the end of
 the script?
-
 c) How many transactions have been executed? Write the starting and
 ending line numbers of each transaction.
 */
@@ -197,9 +214,7 @@ ending line numbers of each transaction.
 
 
 /* 4. (Bonus question) Create the following table:
-
 CREATE TABLE testTable (code INTEGER PRIMARY KEY, descr VARCHAR2(30));
-
 Supposing that testTable is initially empty, write a sequence of DML
 sentences operating on testTable that must be executed in two separate
 sessions A and B so that session B ends up waiting for session A to
